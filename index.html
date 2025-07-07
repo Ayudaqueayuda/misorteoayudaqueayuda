@@ -27,8 +27,8 @@
 
 <div id="registroParticipantes" style="display: none;">
     <h2>Registrar Participante</h2>
-    <input type="text" id="nombreParticipante" placeholder="Nombre del participante">
-    <button onclick="asignarNumero()">Asignar Número y Registrar</button>
+<input type="text" id="nombreParticipante" placeholder="Nombre del participante">
+<input type="number" id="cantidadBoletos" placeholder="Cantidad de boletos" min="1" value="1"> <button onclick="asignarNumero()">Asignar Número y Registrar</button>
     <hr>
 
     <h2>Participantes Registrados</h2>
@@ -61,14 +61,60 @@ function configurarNumeros() {
     // Mostrar la sección de registro y sorteo
     document.getElementById('registroParticipantes').style.display = 'block';
 }
-
 function asignarNumero() {
     const nombre = document.getElementById('nombreParticipante').value.trim();
+    const cantidadBoletos = parseInt(document.getElementById('cantidadBoletos').value); // NUEVA LÍNEA: Obtener la cantidad de boletos
 
     if (!nombre) {
         alert('Por favor, ingresa el nombre del participante.');
         return;
     }
+
+    if (isNaN(cantidadBoletos) || cantidadBoletos <= 0) { // NUEVA VALIDACIÓN
+        alert('Por favor, ingresa una cantidad válida de boletos (al menos 1).');
+        return;
+    }
+
+    if (maxNumberConfigured === 0) {
+        alert('Por favor, configura la cantidad total de números antes de asignar.');
+        return;
+    }
+
+    if (numerosDisponibles.length === 0) {
+        alert('¡Se han asignado todos los números disponibles! No hay más números para repartir.');
+        return;
+    }
+
+    if (cantidadBoletos > numerosDisponibles.length) { // NUEVA VALIDACIÓN: No hay suficientes boletos
+        alert(`No hay suficientes números disponibles para asignar ${cantidadBoletos} boletos. Solo quedan ${numerosDisponibles.length}.`);
+        return;
+    }
+
+    let boletosAsignados = []; // Para guardar los números que se le asignan a este participante
+
+    for (let i = 0; i < cantidadBoletos; i++) { // Bucle para asignar múltiples boletos
+        const indiceAleatorio = Math.floor(Math.random() * numerosDisponibles.length);
+        const numeroAsignado = numerosDisponibles[indiceAleatorio];
+
+        numerosDisponibles.splice(indiceAleatorio, 1); // Eliminar el número asignado
+
+        boletosAsignados.push(numeroAsignado); // Añadir el número a la lista de boletos de este participante
+    }
+
+    // Guardar el participante con todos sus boletos
+    participantes.push({ nombre: nombre, numeros: boletosAsignados }); // CAMBIO: 'numero' ahora es 'numeros' (un array)
+
+    // Mostrar en la lista de participantes
+    const lista = document.getElementById('participantesList');
+    const nuevoItem = document.createElement('li');
+    // Muestra los números asignados separados por comas
+    nuevoItem.textContent = `${nombre} - Números: ${boletosAsignados.join(', ')}`;
+    lista.appendChild(nuevoItem);
+
+    // Limpiar los campos
+    document.getElementById('nombreParticipante').value = '';
+    document.getElementById('cantidadBoletos').value = '1'; // Resetea a 1 por defecto
+}
 
     if (maxNumberConfigured === 0) {
         alert('Por favor, configura la cantidad total de números antes de asignar.');
