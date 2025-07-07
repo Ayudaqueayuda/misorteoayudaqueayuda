@@ -152,6 +152,15 @@ function realizarSorteo() {
         return;
     }
 
+    // Elige un participante ganador al azar
+    const indiceGanador = Math.floor(Math.random() * participantes.length);
+    const ganador = participantes[indiceGanador];
+
+    const divGanador = document.getElementById('ganador');
+    // Muestra al ganador y todos los números que tenía asignados
+    divGanador.textContent = `¡El ganador es: ${ganador.nombre} con los números: ${ganador.numeros.join(', ')}! 🎉`;
+}
+
     const indiceGanador = Math.floor(Math.random() * participantes.length);
     const ganador = participantes[indiceGanador];
 
