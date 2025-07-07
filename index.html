@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteo Dinámico</title>
+    <style>
+        /* Aquí iría el CSS para el estilo de tu página */
+        body { font-family: sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        input[type="number"], input[type="text"], button { padding: 10px; margin-right: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        button { background-color: #4CAF50; color: white; cursor: pointer; }
+        button:hover { opacity: 0.9; }
+        #participantesList { list-style: none; padding: 0; }
+        #participantesList li { background-color: #f9f9f9; padding: 8px; margin-bottom: 5px; border-radius: 4px; }
+        .winner { font-size: 1.2em; font-weight: bold; color: green; margin-top: 20px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Organiza tu Sorteo</h1>
+
+        <p>Ingresa la cantidad máxima de números para el sorteo (Ej: si pones 100, los números irán del 1 al 100).</p>
+        <input type="number" id="maxNumero" placeholder="Cantidad total de números" min="1">
+        <button onclick="configurarNumeros()">Configurar Números</button>
+
+        <hr>
+
+        <h2>Registrar Participante</h2>
+        <input type="text" id="nombreParticipante" placeholder="Nombre del participante">
+        <button onclick="asignarNumero()">Asignar Número y Registrar</button>
+
+        <hr>
+
+        <h2>Participantes Registrados</h2>
+        <ul id="participantesList">
+            </ul>
+
+        <hr>
+
+        <h2>Realizar Sorteo</h2>
+        <button onclick="realizarSorteo()">Elegir Ganador</button>
+        <div id="ganador" class="winner"></div>
+    </div>
+
+    <script>
+        let numerosDisponibles = [];
+        let participantes = [];
+        let maxNumberConfigured = 0;
+
+        function configurarNumeros() {
+            maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
+            if (isNaN(maxNumberConfigured) || maxNumberConfigured <= 0) {
+                alert('Por favor, ingresa un número válido y mayor que cero para la cantidad de números.');
+                return;
+            }
+            numerosDisponibles = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
+            alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
+        }
+
+        function asignarNumero() {
+            const nombre = document.getElementById('nombreParticipante').value.trim();
+
+            if (!nombre) {
+                alert('Por favor, ingresa el nombre del participante.');
+                return;
+            }
+
+            if (maxNumberConfigured === 0) {
+                alert('Por favor, configura la cantidad total de números antes de asignar.');
+                return;
+            }
+
+            if (numerosDisponibles.length === 0) {
+                alert('¡Se han asignado todos los números disponibles! No hay más números para repartir.');
+                return;
+            }
+
+            // Seleccionar un número aleatorio de los disponibles
+            const indiceAleatorio = Math.floor(Math.random() * numerosDisponibles.length);
+            const numeroAsignado = numerosDisponibles[indiceAleatorio];
+
+            // Eliminar el número asignado del array de disponibles para evitar duplicados
+            numerosDisponibles.splice(indiceAleatorio, 1);
+
+            // Guardar el participante
+            participantes.push({ nombre: nombre, numero: numeroAsignado });
+
+            // Mostrar en la lista
+            const lista = document.getElementById('participantesList');
+            const nuevoItem = document.createElement('li');
+            nuevoItem.textContent = `${nombre} - Número: ${numeroAsignado}`;
+            lista.appendChild(nuevoItem);
+
+            // Limpiar el campo de nombre
+            document.getElementById('nombreParticipante').value = '';
+        }
+
+        function realizarSorteo() {
+            if (participantes.length === 0) {
+                alert('No hay participantes registrados para realizar el sorteo.');
+                return;
+            }
+
+            const indiceGanador = Math.floor(Math.random() * participantes.length);
+            const ganador = participantes[indiceGanador];
+
+            const divGanador = document.getElementById('ganador');
+            divGanador.textContent = `¡El ganador es: ${ganador.nombre} con el número ${ganador.numero}! 🎉`;
+        }
+    </script>
+</body>
+</html>
