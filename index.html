@@ -43,10 +43,10 @@
 
     <script>
         let numerosDisponibles = [];
-        let participantes = [];
-        let maxNumberConfigured = 0;
+let participantes = [];
+let maxNumberConfigured = 0;
 
- function configurarNumeros() {
+function configurarNumeros() {
     maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
     if (isNaN(maxNumberConfigured) || maxNumberConfigured <= 0) {
         alert('Por favor, ingresa un número válido y mayor que cero para la cantidad de números.');
@@ -55,69 +55,63 @@
     numerosDisponibles = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
     alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
 
-    // --- ESTAS LÍNEAS SON LAS CLAVE ---
     // Ocultar la sección de configuración
     document.getElementById('configuracionSorteo').style.display = 'none';
 
     // Mostrar la sección de registro y sorteo
     document.getElementById('registroParticipantes').style.display = 'block';
-    // --- FIN DE LAS LÍNEAS CLAVE ---
 }
-            }
-            numerosDisponibles = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
-            alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
-        }
 
-        function asignarNumero() {
-            const nombre = document.getElementById('nombreParticipante').value.trim();
+function asignarNumero() {
+    const nombre = document.getElementById('nombreParticipante').value.trim();
 
-            if (!nombre) {
-                alert('Por favor, ingresa el nombre del participante.');
-                return;
-            }
+    if (!nombre) {
+        alert('Por favor, ingresa el nombre del participante.');
+        return;
+    }
 
-            if (maxNumberConfigured === 0) {
-                alert('Por favor, configura la cantidad total de números antes de asignar.');
-                return;
-            }
+    if (maxNumberConfigured === 0) {
+        alert('Por favor, configura la cantidad total de números antes de asignar.');
+        return;
+    }
 
-            if (numerosDisponibles.length === 0) {
-                alert('¡Se han asignado todos los números disponibles! No hay más números para repartir.');
-                return;
-            }
+    if (numerosDisponibles.length === 0) {
+        alert('¡Se han asignado todos los números disponibles! No hay más números para repartir.');
+        return;
+    }
 
-            // Seleccionar un número aleatorio de los disponibles
-            const indiceAleatorio = Math.floor(Math.random() * numerosDisponibles.length);
-            const numeroAsignado = numerosDisponibles[indiceAleatorio];
+    // Seleccionar un número aleatorio de los disponibles
+    const indiceAleatorio = Math.floor(Math.random() * numerosDisponibles.length);
+    const numeroAsignado = numerosDisponibles[indiceAleatorio];
 
-            // Eliminar el número asignado del array de disponibles para evitar duplicados
-            numerosDisponibles.splice(indiceAleatorio, 1);
+    // Eliminar el número asignado del array de disponibles para evitar duplicados
+    numerosDisponibles.splice(indiceAleatorio, 1);
 
-            // Guardar el participante
-            participantes.push({ nombre: nombre, numero: numeroAsignado });
+    // Guardar el participante
+    participantes.push({ nombre: nombre, numero: numeroAsignado });
 
-            // Mostrar en la lista
-            const lista = document.getElementById('participantesList');
-            const nuevoItem = document.createElement('li');
-            nuevoItem.textContent = `${nombre} - Número: ${numeroAsignado}`;
-            lista.appendChild(nuevoItem);
+    // Mostrar en la lista
+    const lista = document.getElementById('participantesList');
+    const nuevoItem = document.createElement('li');
+    nuevoItem.textContent = `${nombre} - Número: ${numeroAsignado}`;
+    lista.appendChild(nuevoItem);
 
-            // Limpiar el campo de nombre
-            document.getElementById('nombreParticipante').value = '';
-        }
+    // Limpiar el campo de nombre
+    document.getElementById('nombreParticipante').value = '';
+}
 
-        function realizarSorteo() {
-            if (participantes.length === 0) {
-                alert('No hay participantes registrados para realizar el sorteo.');
-                return;
-            }
+function realizarSorteo() {
+    if (participantes.length === 0) {
+        alert('No hay participantes registrados para realizar el sorteo.');
+        return;
+    }
 
-            const indiceGanador = Math.floor(Math.random() * participantes.length);
-            const ganador = participantes[indiceGanador];
+    const indiceGanador = Math.floor(Math.random() * participantes.length);
+    const ganador = participantes[indiceGanador];
 
-            const divGanador = document.getElementById('ganador');
-            divGanador.textContent = `¡El ganador es: ${ganador.nombre} con el número ${ganador.numero}! 🎉`;
-        }
+    const divGanador = document.getElementById('ganador');
+    divGanador.textContent = `¡El ganador es: ${ganador.nombre} con el número ${ganador.numero}! 🎉`;
+}
     </script>
 </body>
 </html>
