@@ -46,7 +46,7 @@
         let participantes = [];
         let maxNumberConfigured = 0;
 
-        function configurarNumeros() {
+ function configurarNumeros() {
     maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
     if (isNaN(maxNumberConfigured) || maxNumberConfigured <= 0) {
         alert('Por favor, ingresa un número válido y mayor que cero para la cantidad de números.');
@@ -55,13 +55,13 @@
     numerosDisponibles = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
     alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
 
-    // --- NUEVAS LÍNEAS DE CÓDIGO ---
+    // --- ESTAS LÍNEAS SON LAS CLAVE ---
     // Ocultar la sección de configuración
     document.getElementById('configuracionSorteo').style.display = 'none';
 
     // Mostrar la sección de registro y sorteo
     document.getElementById('registroParticipantes').style.display = 'block';
-    // --- FIN DE NUEVAS LÍNEAS DE CÓDIGO ---
+    // --- FIN DE LAS LÍNEAS CLAVE ---
 }
             }
             numerosDisponibles = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
