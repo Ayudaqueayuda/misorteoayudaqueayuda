@@ -17,31 +17,29 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Organiza tu Sorteo</h1>
+  <div id="configuracionSorteo">
+    <h1>Organiza tu Sorteo</h1>
+    <p>Ingresa la cantidad máxima de números para el sorteo (Ej: si pones 100, los números irán del 1 al 100).</p>
+    <input type="number" id="maxNumero" placeholder="Cantidad total de números" min="1">
+    <button onclick="configurarNumeros()">Configurar Números</button>
+    <hr>
+</div>
 
-        <p>Ingresa la cantidad máxima de números para el sorteo (Ej: si pones 100, los números irán del 1 al 100).</p>
-        <input type="number" id="maxNumero" placeholder="Cantidad total de números" min="1">
-        <button onclick="configurarNumeros()">Configurar Números</button>
+<div id="registroParticipantes" style="display: none;">
+    <h2>Registrar Participante</h2>
+    <input type="text" id="nombreParticipante" placeholder="Nombre del participante">
+    <button onclick="asignarNumero()">Asignar Número y Registrar</button>
+    <hr>
 
-        <hr>
+    <h2>Participantes Registrados</h2>
+    <ul id="participantesList">
+        </ul>
+    <hr>
 
-        <h2>Registrar Participante</h2>
-        <input type="text" id="nombreParticipante" placeholder="Nombre del participante">
-        <button onclick="asignarNumero()">Asignar Número y Registrar</button>
-
-        <hr>
-
-        <h2>Participantes Registrados</h2>
-        <ul id="participantesList">
-            </ul>
-
-        <hr>
-
-        <h2>Realizar Sorteo</h2>
-        <button onclick="realizarSorteo()">Elegir Ganador</button>
-        <div id="ganador" class="winner"></div>
-    </div>
+    <h2>Realizar Sorteo</h2>
+    <button onclick="realizarSorteo()">Elegir Ganador</button>
+    <div id="ganador" class="winner"></div>
+</div>
 
     <script>
         let numerosDisponibles = [];
@@ -49,10 +47,22 @@
         let maxNumberConfigured = 0;
 
         function configurarNumeros() {
-            maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
-            if (isNaN(maxNumberConfigured) || maxNumberConfigured <= 0) {
-                alert('Por favor, ingresa un número válido y mayor que cero para la cantidad de números.');
-                return;
+    maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
+    if (isNaN(maxNumberConfigured) || maxNumberConfigured <= 0) {
+        alert('Por favor, ingresa un número válido y mayor que cero para la cantidad de números.');
+        return;
+    }
+    numerosDisponibles = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
+    alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
+
+    // --- NUEVAS LÍNEAS DE CÓDIGO ---
+    // Ocultar la sección de configuración
+    document.getElementById('configuracionSorteo').style.display = 'none';
+
+    // Mostrar la sección de registro y sorteo
+    document.getElementById('registroParticipantes').style.display = 'block';
+    // --- FIN DE NUEVAS LÍNEAS DE CÓDIGO ---
+}
             }
             numerosDisponibles = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
             alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
