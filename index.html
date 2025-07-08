@@ -121,23 +121,20 @@ function asignarNumero() {
 }
 
 function iniciarSorteo() {
-    // Asegurarse de que haya boletos registrados en el sorteo
-    const numerosComprados = Object.keys(boletosRegistrados).map(Number);
-    if (numerosComprados.length === 0) {
-        alert('No se han vendido boletos aún. Registra participantes.');
+    if (maxNumberConfigured === 0) {
+        alert('Por favor, configura la cantidad total de números para el sorteo.');
         return;
     }
 
-    // Seleccionar un número de boleto ganador al azar de los que han sido comprados
-    const indiceBoletoGanador = Math.floor(Math.random() * numerosComprados.length);
-    const numeroGanador = numerosComprados[indiceBoletoGanador];
+    // Seleccionar un número ganador aleatorio del RANGO TOTAL (1 hasta maxNumberConfigured)
+    const numeroGanador = Math.floor(Math.random() * maxNumberConfigured) + 1;
 
     const divNumeroGanador = document.getElementById('numeroGanador');
-    divNumeroGanador.textContent = `¡El número ganador es el: ${numeroGanador}! 🎉`;
+    divNumeroGanador.textContent = `¡El número sorteado es el: ${numeroGanador}! 🎉`;
 
     // Mostrar el botón para ver el ganador
     document.getElementById('verGanadorBtn').style.display = 'block';
-    // Ocultar el área del nombre del ganador si estuviera visible de un sorteo anterior
+    // Ocultar el área del nombre del ganador si estuviera visible
     document.getElementById('nombreGanador').style.display = 'none';
 
     // Guardar el número ganador en una variable global para usarla en mostrarNombreGanador()
