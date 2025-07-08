@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sorteo Dinámico</title>
     <style>
-        /* Estilos generales (puedes ajustarlos o añadir más) */
+        /* Estilos generales */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -104,20 +104,37 @@
         #rouletteWheel {
             display: block;
             transition: transform 3s ease-out; /* Transición para el giro suave */
-            /* La transformación de rotación se aplica directamente al elemento canvas por JS */
         }
 
         .pointer {
             position: absolute;
-            top: -10px; /* Posiciona el puntero ligeramente por encima del borde superior */
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 15px solid transparent; /* Lado izquierdo del triángulo */
-            border-right: 15px solid transparent; /* Lado derecho del triángulo */
-            border-top: 30px solid red; /* Base del triángulo (parte de arriba) */
-            z-index: 10; /* Asegura que el puntero esté encima de la rueda */
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid red;
+            z-index: 10;
+        }
+
+        /* ESTILOS PARA EL POPUP DE GANADOR */
+        #winnerPopup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: none; /* Inicialmente oculto */
         }
     </style>
 </head>
@@ -145,22 +162,24 @@
                 </ul>
         </section>
 
-       <section>
-    <h2>Realizar Sorteo</h2>
-    <button onclick="iniciarSorteo()">Elegir Número Ganador</button>
+        <section>
+            <h2>Realizar Sorteo</h2>
+            <button onclick="iniciarSorteo()">Elegir Número Ganador</button>
 
-    <div class="wheel-container">
-        <canvas id="rouletteWheel" width="300" height="300"></canvas>
-        <div class="pointer"></div>
-    </div>
-    <div id="numeroGanador" class="winner" style="font-size: 1.2em; font-weight: bold; color: navy; margin-top: 20px;"></div>
-    <button id="verGanadorBtn" style="display: none; padding: 10px; margin-top: 10px; background-color: #007bff; color: white; cursor: pointer; border: none; border-radius: 5px;" onclick="mostrarNombreGanador()">Ver Ganador</button>
-    <div id="nombreGanador" style="display: none; font-weight: bold; color: green; margin-top: 10px;"></div>
-</section>
+            <div class="wheel-container">
+                <canvas id="rouletteWheel" width="300" height="300"></canvas>
+                <div class="pointer"></div>
+            </div>
+            <div id="winnerPopup">
+                </div>
+            <div id="numeroGanador" class="winner" style="font-size: 1.2em; font-weight: bold; color: navy; margin-top: 20px;"></div>
+            <button id="verGanadorBtn" style="display: none; padding: 10px; margin-top: 10px; background-color: #007bff; color: white; cursor: pointer; border: none; border-radius: 5px;" onclick="mostrarNombreGanador()">Ver Ganador</button>
+            <div id="nombreGanador" style="display: none; font-weight: bold; color: green; margin-top: 10px;"></div>
+        </section>
 
-        <section id="historialSorteo" style="margin-top: 40px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+        <section id="historialSorteo">
             <h2>Historial de Sorteos</h2>
-            <ul id="historialList" style="list-style-type: none; padding: 0;">
+            <ul id="historialList">
                 </ul>
         </section>
     </div>
@@ -168,18 +187,19 @@
     <script>
         let numerosTotalesParaSorteo = [];
         let participantes = [];
-        let boletosRegistrados = {}; // Asocia cada número asignado a su participante { '1': 'Juan', '5': 'Juan', ... }
+        let boletosRegistrados = {}; 
         let maxNumberConfigured = 0;
-        let historialSorteos = []; // Para guardar los números sorteados y su resultado
+        let historialSorteos = []; 
 
-        // Variables para la Rueda de la Fortuna
-        let wheelCanvas;
-        let wheelContext;
-        let wheelRadius;
-        let segmentAngle;
-        let currentRotation = 0; // Rotación actual de la rueda en radianes
-        let spinning = false; // Bandera para evitar giros múltiples
-        const spinDuration = 3000; // Duración del giro en milisegundos (3 segundos)
+       // Variables para la Rueda de la Fortuna
+let wheelCanvas;
+let wheelContext;
+let wheelRadius;
+const fixedWheelSegments = 40; // NUEVA LÍNEA: Número fijo de segmentos visuales en la rueda
+const segmentAngle = (2 * Math.PI) / fixedWheelSegments; // Calculamos el ángulo para los segmentos fijos
+let currentRotation = 0; 
+let spinning = false; 
+const spinDuration = 3000;
 
         function configurarNumeros() {
             maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
@@ -187,7 +207,7 @@
                 alert('Por favor, ingresa un número válido y mayor que cero para la cantidad de números.');
                 return;
             }
-            numerosTotalesParaSorteo = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
+            numerosTotalesParaSorteo = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); 
             alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
 
             document.getElementById('configuracionSorteo').style.display = 'none';
@@ -197,8 +217,7 @@
             wheelCanvas = document.getElementById('rouletteWheel');
             if (wheelCanvas) {
                 wheelContext = wheelCanvas.getContext('2d');
-                wheelRadius = wheelCanvas.width / 2;
-                segmentAngle = (2 * Math.PI) / maxNumberConfigured; // Ángulo para cada segmento
+                wheelRadius = wheelCanvas.width / 2; 
                 drawWheel(); // Dibuja la rueda inicialmente
             } else {
                 console.error("No se encontró el elemento canvas de la rueda.");
@@ -241,7 +260,7 @@
                 const indiceAleatorio = Math.floor(Math.random() * numerosDisponiblesParaAsignar.length);
                 const numeroAsignado = numerosDisponiblesParaAsignar[indiceAleatorio];
 
-                boletosRegistrados[numeroAsignado] = nombre; // Asocia el número con el nombre
+                boletosRegistrados[numeroAsignado] = nombre; 
 
                 boletosAsignados.push(numeroAsignado);
                 numerosDisponiblesParaAsignar.splice(indiceAleatorio, 1);
@@ -259,7 +278,7 @@
         }
 
         function iniciarSorteo() {
-            if (spinning) return; // Evita iniciar un nuevo giro si ya está girando
+            if (spinning) return; 
             if (maxNumberConfigured === 0) {
                 alert('Por favor, configura la cantidad total de números para el sorteo.');
                 return;
@@ -267,10 +286,12 @@
 
             const numeroGanador = Math.floor(Math.random() * maxNumberConfigured) + 1;
 
-            // Oculta el número ganador inicialmente y el nombre del ganador
+            // OCULTAR TODO LO RELACIONADO CON EL GANADOR AL INICIO DEL GIRO
             document.getElementById('numeroGanador').textContent = ''; 
+            document.getElementById('numeroGanador').style.display = 'none'; 
             document.getElementById('nombreGanador').style.display = 'none';
-            document.getElementById('verGanadorBtn').style.display = 'none'; // Oculta el botón Ver Ganador al inicio del giro
+            document.getElementById('verGanadorBtn').style.display = 'none'; 
+            document.getElementById('winnerPopup').style.display = 'none'; // Asegura que el popup esté oculto al iniciar
 
             // Inicia el giro de la rueda
             spinWheel(numeroGanador); 
@@ -288,13 +309,7 @@
             }
 
             historialSorteos.push(resultadoSorteo);
-
-            // Retrasar la actualización del div del número ganador, el botón Ver Ganador y el historial hasta que la rueda termine de girar
-            setTimeout(() => {
-                document.getElementById('numeroGanador').textContent = `¡El número sorteado es el: ${numeroGanador}! 🎉`;
-                document.getElementById('verGanadorBtn').style.display = 'block'; // Muestra el botón Ver Ganador
-                actualizarHistorialEnPantalla();
-            }, spinDuration + 500); // spinDuration + un pequeño extra para asegurar que la animación termine
+            actualizarHistorialEnPantalla(); 
         }
 
         function mostrarNombreGanador() {
@@ -322,7 +337,7 @@
                 console.error("Error: El elemento con ID 'historialList' no se encontró en el DOM.");
                 return;
             }
-            listaHistorial.innerHTML = ''; // Limpiar la lista antes de actualizarla
+            listaHistorial.innerHTML = ''; 
 
             historialSorteos.forEach(item => {
                 const listItem = document.createElement('li');
@@ -344,7 +359,7 @@
             const colors = ['#f8d7da', '#d1ecf1', '#d4edda', '#ffeeba', '#cce5ff', '#e2e3e5', '#ffc107', '#20c997', '#6f42c1', '#fd7e14']; // Más colores
             let startAngle = 0;
 
-            for (let i = 0; i < maxNumberConfigured; i++) {
+            for (let i = 0; i < fixedWheelSegments; i++) {
                 const endAngle = startAngle + segmentAngle;
                 
                 wheelContext.beginPath();
@@ -359,74 +374,92 @@
                 wheelContext.lineWidth = 1;
                 wheelContext.stroke();
 
-                // Dibujar números en el segmento
-                wheelContext.save(); 
-                wheelContext.translate(wheelRadius, wheelRadius); 
-                wheelContext.rotate(startAngle + segmentAngle / 2); 
-                wheelContext.textAlign = 'right';
-                wheelContext.fillStyle = '#000'; 
-                wheelContext.font = 'bold 16px Arial';
-                // Asegurar que el texto no se salga si hay muchos números
-                wheelContext.fillText(i + 1, wheelRadius * 0.9, 5); 
-                wheelContext.restore(); 
-
                 startAngle = endAngle;
             }
         }
 
-        // Función para iniciar el giro de la rueda
-        function spinWheel(winningNumber) {
-            if (spinning) return;
-            spinning = true;
+        // Función para iniciar el giro de la rueda (ajustada para segmentos fijos)
+function spinWheel(winningNumber) {
+    if (spinning) return;
+    spinning = true;
 
-            // Calcular las rotaciones necesarias para que el número ganador quede bajo el puntero
-            // Queremos que el puntero (arriba, a 90 grados en relación al centro del círculo si el círculo empieza en 0 grados a la derecha)
-            // apunte al centro del segmento del número ganador.
-            // Los segmentos se dibujan desde 0 grados (derecha). El segmento del número N es de (N-1)*segmentAngle a N*segmentAngle.
-            // El centro del segmento es (N-1)*segmentAngle + segmentAngle/2.
-            // Para que este centro quede arriba, la rueda debe rotar de tal forma que ese ángulo se mueva a -PI/2 (arriba).
-            // La rotación deseada es: (ángulo del centro del segmento ganador) - (-PI/2)
-            const winningSegmentCenterAngle = (winningNumber - 1) * segmentAngle + segmentAngle / 2;
-            let targetRotation = winningSegmentCenterAngle - (Math.PI / 2); // Ángulo para que el centro del segmento esté arriba
+    // Queremos que la rueda se detenga en un segmento de los 40 fijos.
+    // Elegimos un segmento visual aleatorio para la parada.
+    const randomTargetSegmentIndex = Math.floor(Math.random() * fixedWheelSegments);
+    const targetAngleInSegments = randomTargetSegmentIndex * segmentAngle + segmentAngle / 2; // Centro de un segmento visual
 
-            // Asegurarse de que la rueda gire varias veces
-            // Sumar un número grande de rotaciones (ej. 5 vueltas completas)
-            targetRotation += (5 * 2 * Math.PI); // Añade 5 giros completos
+    // Añadir varias vueltas completas para un giro dramático
+    const totalSpins = 5; // Por ejemplo, 5 vueltas completas
+    let targetRotation = (totalSpins * 2 * Math.PI) + targetAngleInSegments - (Math.PI / 2); // -PI/2 para compensar el puntero arriba
 
-            // Ajustar para que siempre gire en la misma dirección y desde la rotación actual
-            targetRotation = targetRotation % (2 * Math.PI); // Normalizar a 0-2PI
-            if (targetRotation < 0) targetRotation += (2 * Math.PI);
+    // Normalizar targetRotation para que quede en el rango correcto relativo al currentRotation
+    targetRotation = targetRotation % (2 * Math.PI);
+    if (targetRotation < 0) targetRotation += (2 * Math.PI); // Asegurar que sea positivo
 
-            // La rotación total que debe hacer desde la posición actual
-            let rotationAmount = targetRotation - (currentRotation % (2 * Math.PI));
-            if (rotationAmount <= 0) rotationAmount += (2 * Math.PI); // Asegura al menos un giro completo si ya pasó el target
-            rotationAmount += (5 * 2 * Math.PI); // Añade varias vueltas completas para el efecto visual
+    let rotationAmount = targetRotation - (currentRotation % (2 * Math.PI));
+    if (rotationAmount < 0) rotationAmount += (2 * Math.PI); // Asegurar que gire en la dirección correcta si ya pasó el objetivo
+    rotationAmount += (5 * 2 * Math.PI); // Añadir más vueltas para el efecto dramático
 
-            const startRotation = currentRotation;
-            const startTime = performance.now();
+    const startRotation = currentRotation;
+    const startTime = performance.now();
 
-            function animateSpin(currentTime) {
-                const elapsedTime = currentTime - startTime;
-                const progress = Math.min(elapsedTime / spinDuration, 1);
-                
-                // Función de easing: comienza rápido y desacelera hacia el final (easeOutCubic)
-                const easedProgress = 1 - Math.pow(1 - progress, 3); 
+    function animateSpin(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / spinDuration, 1);
 
-                currentRotation = startRotation + easedProgress * rotationAmount;
-                
-                wheelCanvas.style.transform = `rotate(${currentRotation}rad)`;
+        // Función de easing: comienza rápido y desacelera hacia el final (easeOutCubic)
+        const easedProgress = 1 - Math.pow(1 - progress, 3); 
 
-                if (progress < 1) {
-                    requestAnimationFrame(animateSpin);
-                } else {
-                    spinning = false;
-                    // Asegurar que la rotación final se "bloquee" en el ángulo exacto para evitar pequeñas desviaciones
-                    wheelCanvas.style.transform = `rotate(${startRotation + rotationAmount}rad)`;
-                    currentRotation = startRotation + rotationAmount; // Actualiza la rotación final
-                }
-            }
+        currentRotation = startRotation + easedProgress * rotationAmount;
+
+        wheelCanvas.style.transform = `rotate(${currentRotation}rad)`;
+
+        if (progress < 1) {
             requestAnimationFrame(animateSpin);
+        } else {
+            spinning = false;
+            // Asegurar que la rotación final se "bloquee" en el ángulo exacto
+            wheelCanvas.style.transform = `rotate(${startRotation + rotationAmount}rad)`;
+            currentRotation = startRotation + rotationAmount; 
+
+            revealWinnerInPopup(winningNumber); 
         }
+    }
+    requestAnimationFrame(animateSpin);
+}
+        // Función para revelar el ganador en el popup
+        function revealWinnerInPopup(winningNumber) {
+            const winnerPopup = document.getElementById('winnerPopup');
+            if (winnerPopup) { // Asegurarse de que el elemento exista
+                winnerPopup.textContent = `¡El número ganador es: ${winningNumber}! 🎉`;
+                winnerPopup.style.display = 'block'; 
+
+                // Después de unos segundos, oculta el popup y muestra el div normal
+                setTimeout(() => {
+                    winnerPopup.style.display = 'none';
+                    document.getElementById('numeroGanador').textContent = `¡El número sorteado es el: ${winningNumber}! 🎉`;
+                    document.getElementById('numeroGanador').style.display = 'block';
+                    document.getElementById('verGanadorBtn').style.display = 'block';
+                }, 3000); // Popup visible por 3 segundos
+            } else {
+                console.error("Error: El elemento con ID 'winnerPopup' no se encontró en el DOM.");
+                // Si el popup no se encuentra, al menos muestra el número en el div normal
+                document.getElementById('numeroGanador').textContent = `¡El número sorteado es el: ${winningNumber}! 🎉`;
+                document.getElementById('numeroGanador').style.display = 'block';
+                document.getElementById('verGanadorBtn').style.display = 'block';
+            }
+        }
+
+        // Dibuja la rueda cuando la página termina de cargar si ya hay un maxNumberConfigured
+        window.onload = function() {
+            if (maxNumberConfigured > 0 && document.getElementById('rouletteWheel')) {
+                wheelCanvas = document.getElementById('rouletteWheel');
+                wheelContext = wheelCanvas.getContext('2d');
+                wheelRadius = wheelCanvas.width / 2;
+                segmentAngle = (2 * Math.PI) / maxNumberConfigured;
+                drawWheel();
+            }
+        };
     </script>
 </body>
 </html>
