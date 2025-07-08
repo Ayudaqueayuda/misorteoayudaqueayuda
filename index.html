@@ -37,8 +37,10 @@
     <hr>
 
     <h2>Realizar Sorteo</h2>
-    <button onclick="realizarSorteo()">Elegir Ganador</button>
-    <div id="ganador" class="winner"></div>
+<button onclick="iniciarSorteo()">Elegir Número Ganador</button>
+<div id="numeroGanador" class="winner" style="font-size: 1.2em; font-weight: bold; color: navy; margin-top: 20px;"></div>
+<button id="verGanadorBtn" style="display: none; padding: 10px; margin-top: 10px; background-color: #007bff; color: white; cursor: pointer; border: none; border-radius: 5px;" onclick="mostrarNombreGanador()">Ver Ganador</button>
+<div id="nombreGanador" style="display: none; font-weight: bold; color: green; margin-top: 10px;"></div>
 </div>
 
     <script>
@@ -118,9 +120,9 @@ function asignarNumero() {
     document.getElementById('cantidadBoletos').value = '1';
 }
 
-function realizarSorteo() {
+function iniciarSorteo() {
     // Asegurarse de que haya boletos registrados en el sorteo
-    const numerosComprados = Object.keys(boletosRegistrados).map(Number); // Convertir claves de objeto a array de números
+    const numerosComprados = Object.keys(boletosRegistrados).map(Number);
     if (numerosComprados.length === 0) {
         alert('No se han vendido boletos aún. Registra participantes.');
         return;
@@ -130,11 +132,33 @@ function realizarSorteo() {
     const indiceBoletoGanador = Math.floor(Math.random() * numerosComprados.length);
     const numeroGanador = numerosComprados[indiceBoletoGanador];
 
-    // Identificar al participante que compró ese número
-    const nombreGanador = boletosRegistrados[numeroGanador];
+    const divNumeroGanador = document.getElementById('numeroGanador');
+    divNumeroGanador.textContent = `¡El número ganador es el: ${numeroGanador}! 🎉`;
 
-    const divGanador = document.getElementById('ganador');
-    divGanador.textContent = `¡El número ganador es el: ${numeroGanador}! 🎉 Pertenece a: ${nombreGanador}.`;
+    // Mostrar el botón para ver el ganador
+    document.getElementById('verGanadorBtn').style.display = 'block';
+    // Ocultar el área del nombre del ganador si estuviera visible de un sorteo anterior
+    document.getElementById('nombreGanador').style.display = 'none';
+
+    // Guardar el número ganador en una variable global para usarla en mostrarNombreGanador()
+    window.numeroGanadorSeleccionado = numeroGanador;
+}
+
+function mostrarNombreGanador() {
+    if (window.numeroGanadorSeleccionado) {
+        // Asegurarse de que el número esté en formato string para acceder a la propiedad del objeto boletosRegistrados
+        const numeroGanadorStr = window.numeroGanadorSeleccionado.toString();
+        const nombreGanador = boletosRegistrados.hasOwnProperty(numeroGanadorStr) ? boletosRegistrados[numeroGanadorStr] : 'No se encontró el ganador';
+
+        const divNombreGanador = document.getElementById('nombreGanador');
+        divNombreGanador.textContent = `El ganador del número ${window.numeroGanadorSeleccionado} es: ${nombreGanador}.`;
+        divNombreGanador.style.display = 'block';
+
+        // Opcional: Si quieres ocultar el botón "Ver Ganador" después de mostrar el nombre, descomenta la siguiente línea:
+        // document.getElementById('verGanadorBtn').style.display = 'none';
+    } else {
+        alert('Por favor, elige un número ganador primero.');
+    }
 }
     </script>
 </body>
