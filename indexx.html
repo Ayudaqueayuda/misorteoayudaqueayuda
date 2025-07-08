@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteo Dinámico</title>
+    <style>
+        /* Estilos generales (puedes ajustarlos o añadir más) */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+        }
+        section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="number"], input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: decimal;
+            padding-left: 20px;
+        }
+        li {
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        li:last-child {
+            border-bottom: none;
+        }
+        .winner {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        #configuracionSorteo, #registroParticipantes, #historialSorteo {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        #registroParticipantes {
+            display: none; /* Inicialmente oculto */
+        }
+
+        /* ESTILOS PARA LA RUEDA DE LA FORTUNA */
+        .wheel-container {
+            position: relative;
+            width: 300px; /* Tamaño de la rueda */
+            height: 300px;
+            margin: 30px auto; /* Centra la rueda */
+            overflow: hidden;
+            border-radius: 50%; /* Hace el contenedor redondo */
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            background-color: #eee; /* Fondo si el canvas no cubre todo */
+        }
+
+        #rouletteWheel {
+            display: block;
+            transition: transform 3s ease-out; /* Transición para el giro suave */
+            /* La transformación de rotación se aplica directamente al elemento canvas por JS */
+        }
+
+        .pointer {
+            position: absolute;
+            top: -10px; /* Posiciona el puntero ligeramente por encima del borde superior */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent; /* Lado izquierdo del triángulo */
+            border-right: 15px solid transparent; /* Lado derecho del triángulo */
+            border-top: 30px solid red; /* Base del triángulo (parte de arriba) */
+            z-index: 10; /* Asegura que el puntero esté encima de la rueda */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mi Sorteo Dinámico</h1>
+
+        <section id="configuracionSorteo">
+            <h2>Configuración del Sorteo</h2>
+            <label for="maxNumero">Cantidad total de números para el sorteo:</label>
+            <input type="number" id="maxNumero" placeholder="Ej: 100">
+            <button onclick="configurarNumeros()">Configurar Números</button>
+        </section>
+
+        <section id="registroParticipantes">
+            <h2>Registro de Participantes</h2>
+            <label for="nombreParticipante">Nombre del participante:</label>
+            <input type="text" id="nombreParticipante" placeholder="Ej: Juan Pérez">
+            <label for="cantidadBoletos">Cantidad de boletos a asignar:</label>
+            <input type="number" id="cantidadBoletos" value="1" min="1">
+            <button onclick="asignarNumero()">Asignar Boletos</button>
+
+            <h3>Participantes Registrados:</h3>
+            <ul id="participantesList">
+                </ul>
+        </section>
+
+        <section>
+            <h2>Realizar Sorteo</h2>
+            <button onclick="iniciarSorteo()">Elegir Número Ganador</button>
+
+            <div class="wheel-container">
+                <canvas id="rouletteWheel" width="300" height="300"></canvas>
+                <div class="pointer"></div>
+            </div>
+            <div id="numeroGanador" class="winner" style="font-size: 1.2em; font-weight: bold; color: navy; margin-top: 20px;"></div>
+            <button id="verGanadorBtn" style="display: none; padding: 10px; margin-top: 10px; background-color: #007bff; color: white; cursor: pointer; border: none; border-radius: 5px;" onclick="mostrarNombreGanador()">Ver Ganador</button>
+            <div id="nombreGanador" style="display: none; font-weight: bold; color: green; margin-top: 10px;"></div>
+        </section>
+
+        <section id="historialSorteo" style="margin-top: 40px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+            <h2>Historial de Sorteos</h2>
+            <ul id="historialList" style="list-style-type: none; padding: 0;">
+                </ul>
+        </section>
+    </div>
+
+    <script>
+        let numerosTotalesParaSorteo = [];
+        let participantes = [];
+        let boletosRegistrados = {}; // Asocia cada número asignado a su participante { '1': 'Juan', '5': 'Juan', ... }
+        let maxNumberConfigured = 0;
+        let historialSorteos = []; // Para guardar los números sorteados y su resultado
+
+        // Variables para la Rueda de la Fortuna
+        let wheelCanvas;
+        let wheelContext;
+        let wheelRadius;
+        let segmentAngle;
+        let currentRotation = 0; // Rotación actual de la rueda en radianes
+        let spinning = false; // Bandera para evitar giros múltiples
+        const spinDuration = 3000; // Duración del giro en milisegundos (3 segundos)
+
+        function configurarNumeros() {
+            maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
+            if (isNaN(maxNumberConfigured) || maxNumberConfigured <= 0) {
+                alert('Por favor, ingresa un número válido y mayor que cero para la cantidad de números.');
+                return;
+            }
+            numerosTotalesParaSorteo = Array.from({length: maxNumberConfigured}, (_, i) => i + 1); // Crea un array de 1 a maxNumero
+            alert(`Sorteo configurado con ${maxNumberConfigured} números.`);
+
+            document.getElementById('configuracionSorteo').style.display = 'none';
+            document.getElementById('registroParticipantes').style.display = 'block';
+
+            // Inicializar la Rueda
+            wheelCanvas = document.getElementById('rouletteWheel');
+            if (wheelCanvas) {
+                wheelContext = wheelCanvas.getContext('2d');
+                wheelRadius = wheelCanvas.width / 2;
+                segmentAngle = (2 * Math.PI) / maxNumberConfigured; // Ángulo para cada segmento
+                drawWheel(); // Dibuja la rueda inicialmente
+            } else {
+                console.error("No se encontró el elemento canvas de la rueda.");
+            }
+        }
+
+        function asignarNumero() {
+            const nombre = document.getElementById('nombreParticipante').value.trim();
+            const cantidadBoletos = parseInt(document.getElementById('cantidadBoletos').value);
+
+            if (!nombre) {
+                alert('Por favor, ingresa el nombre del participante.');
+                return;
+            }
+
+            if (isNaN(cantidadBoletos) || cantidadBoletos <= 0) {
+                alert('Por favor, ingresa una cantidad válida de boletos (al menos 1).');
+                return;
+            }
+
+            if (maxNumberConfigured === 0) {
+                alert('Por favor, configura la cantidad total de números antes de asignar.');
+                return;
+            }
+
+            let numerosDisponiblesParaAsignar = numerosTotalesParaSorteo.filter(num => !boletosRegistrados[num]);
+
+            if (numerosDisponiblesParaAsignar.length === 0) {
+                alert('¡Se han asignado todos los números disponibles! No hay más números para repartir.');
+                return;
+            }
+
+            if (cantidadBoletos > numerosDisponiblesParaAsignar.length) {
+                alert(`No hay suficientes números disponibles para asignar ${cantidadBoletos} boletos. Solo quedan ${numerosDisponiblesParaAsignar.length}.`);
+                return;
+            }
+
+            let boletosAsignados = [];
+            for (let i = 0; i < cantidadBoletos; i++) {
+                const indiceAleatorio = Math.floor(Math.random() * numerosDisponiblesParaAsignar.length);
+                const numeroAsignado = numerosDisponiblesParaAsignar[indiceAleatorio];
+
+                boletosRegistrados[numeroAsignado] = nombre; // Asocia el número con el nombre
+
+                boletosAsignados.push(numeroAsignado);
+                numerosDisponiblesParaAsignar.splice(indiceAleatorio, 1);
+            }
+
+            participantes.push({ nombre: nombre, numeros: boletosAsignados });
+
+            const lista = document.getElementById('participantesList');
+            const nuevoItem = document.createElement('li');
+            nuevoItem.textContent = `${nombre} - Números: ${boletosAsignados.join(', ')}`;
+            lista.appendChild(nuevoItem);
+
+            document.getElementById('nombreParticipante').value = '';
+            document.getElementById('cantidadBoletos').value = '1';
+        }
+
+        function iniciarSorteo() {
+            if (spinning) return; // Evita iniciar un nuevo giro si ya está girando
+            if (maxNumberConfigured === 0) {
+                alert('Por favor, configura la cantidad total de números para el sorteo.');
+                return;
+            }
+
+            const numeroGanador = Math.floor(Math.random() * maxNumberConfigured) + 1;
+
+            // Oculta el número ganador inicialmente y el nombre del ganador
+            document.getElementById('numeroGanador').textContent = ''; 
+            document.getElementById('nombreGanador').style.display = 'none';
+            document.getElementById('verGanadorBtn').style.display = 'none'; // Oculta el botón Ver Ganador al inicio del giro
+
+            // Inicia el giro de la rueda
+            spinWheel(numeroGanador); 
+
+            window.numeroGanadorSeleccionado = numeroGanador;
+
+            const numeroGanadorStr = numeroGanador.toString();
+            let resultadoSorteo = {
+                numero: numeroGanador,
+                ganador: null
+            };
+
+            if (boletosRegistrados.hasOwnProperty(numeroGanadorStr)) {
+                resultadoSorteo.ganador = boletosRegistrados[numeroGanadorStr];
+            }
+
+            historialSorteos.push(resultadoSorteo);
+
+            // Retrasar la actualización del div del número ganador, el botón Ver Ganador y el historial hasta que la rueda termine de girar
+            setTimeout(() => {
+                document.getElementById('numeroGanador').textContent = `¡El número sorteado es el: ${numeroGanador}! 🎉`;
+                document.getElementById('verGanadorBtn').style.display = 'block'; // Muestra el botón Ver Ganador
+                actualizarHistorialEnPantalla();
+            }, spinDuration + 500); // spinDuration + un pequeño extra para asegurar que la animación termine
+        }
+
+        function mostrarNombreGanador() {
+            if (window.numeroGanadorSeleccionado) {
+                const numeroGanadorStr = window.numeroGanadorSeleccionado.toString();
+                
+                if (boletosRegistrados.hasOwnProperty(numeroGanadorStr)) {
+                    const nombreGanador = boletosRegistrados[numeroGanadorStr];
+                    const divNombreGanador = document.getElementById('nombreGanador');
+                    divNombreGanador.textContent = `¡El boleto ${window.numeroGanadorSeleccionado} pertenece a: ${nombreGanador}! ¡Felicidades! 🥳`;
+                    divNombreGanador.style.display = 'block';
+                } else {
+                    const divNombreGanador = document.getElementById('nombreGanador');
+                    divNombreGanador.textContent = `El boleto ${window.numeroGanadorSeleccionado} NO fue comprado. ¡No hay ganador con este número! 😔`;
+                    divNombreGanador.style.display = 'block';
+                }
+            } else {
+                alert('Por favor, elige un número ganador primero.');
+            }
+        }
+
+        function actualizarHistorialEnPantalla() {
+            const listaHistorial = document.getElementById('historialList');
+            if (!listaHistorial) {
+                console.error("Error: El elemento con ID 'historialList' no se encontró en el DOM.");
+                return;
+            }
+            listaHistorial.innerHTML = ''; // Limpiar la lista antes de actualizarla
+
+            historialSorteos.forEach(item => {
+                const listItem = document.createElement('li');
+                let texto = `Número Sorteado: ${item.numero}`;
+                if (item.ganador) {
+                    texto += ` - Ganador: ${item.ganador}`;
+                } else {
+                    texto += ` - ¡No vendido!`;
+                }
+                listItem.textContent = texto;
+                listaHistorial.appendChild(listItem);
+            });
+        }
+
+        // Función para dibujar la rueda
+        function drawWheel() {
+            wheelContext.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height); // Limpiar canvas
+            
+            const colors = ['#f8d7da', '#d1ecf1', '#d4edda', '#ffeeba', '#cce5ff', '#e2e3e5', '#ffc107', '#20c997', '#6f42c1', '#fd7e14']; // Más colores
+            let startAngle = 0;
+
+            for (let i = 0; i < maxNumberConfigured; i++) {
+                const endAngle = startAngle + segmentAngle;
+                
+                wheelContext.beginPath();
+                wheelContext.moveTo(wheelRadius, wheelRadius);
+                wheelContext.arc(wheelRadius, wheelRadius, wheelRadius, startAngle, endAngle);
+                wheelContext.closePath();
+
+                wheelContext.fillStyle = colors[i % colors.length];
+                wheelContext.fill();
+                
+                wheelContext.strokeStyle = '#333';
+                wheelContext.lineWidth = 1;
+                wheelContext.stroke();
+
+                // Dibujar números en el segmento
+                wheelContext.save(); 
+                wheelContext.translate(wheelRadius, wheelRadius); 
+                wheelContext.rotate(startAngle + segmentAngle / 2); 
+                wheelContext.textAlign = 'right';
+                wheelContext.fillStyle = '#000'; 
+                wheelContext.font = 'bold 16px Arial';
+                // Asegurar que el texto no se salga si hay muchos números
+                wheelContext.fillText(i + 1, wheelRadius * 0.9, 5); 
+                wheelContext.restore(); 
+
+                startAngle = endAngle;
+            }
+        }
+
+        // Función para iniciar el giro de la rueda
+        function spinWheel(winningNumber) {
+            if (spinning) return;
+            spinning = true;
+
+            // Calcular las rotaciones necesarias para que el número ganador quede bajo el puntero
+            // Queremos que el puntero (arriba, a 90 grados en relación al centro del círculo si el círculo empieza en 0 grados a la derecha)
+            // apunte al centro del segmento del número ganador.
+            // Los segmentos se dibujan desde 0 grados (derecha). El segmento del número N es de (N-1)*segmentAngle a N*segmentAngle.
+            // El centro del segmento es (N-1)*segmentAngle + segmentAngle/2.
+            // Para que este centro quede arriba, la rueda debe rotar de tal forma que ese ángulo se mueva a -PI/2 (arriba).
+            // La rotación deseada es: (ángulo del centro del segmento ganador) - (-PI/2)
+            const winningSegmentCenterAngle = (winningNumber - 1) * segmentAngle + segmentAngle / 2;
+            let targetRotation = winningSegmentCenterAngle - (Math.PI / 2); // Ángulo para que el centro del segmento esté arriba
+
+            // Asegurarse de que la rueda gire varias veces
+            // Sumar un número grande de rotaciones (ej. 5 vueltas completas)
+            targetRotation += (5 * 2 * Math.PI); // Añade 5 giros completos
+
+            // Ajustar para que siempre gire en la misma dirección y desde la rotación actual
+            targetRotation = targetRotation % (2 * Math.PI); // Normalizar a 0-2PI
+            if (targetRotation < 0) targetRotation += (2 * Math.PI);
+
+            // La rotación total que debe hacer desde la posición actual
+            let rotationAmount = targetRotation - (currentRotation % (2 * Math.PI));
+            if (rotationAmount <= 0) rotationAmount += (2 * Math.PI); // Asegura al menos un giro completo si ya pasó el target
+            rotationAmount += (5 * 2 * Math.PI); // Añade varias vueltas completas para el efecto visual
+
+            const startRotation = currentRotation;
+            const startTime = performance.now();
+
+            function animateSpin(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / spinDuration, 1);
+                
+                // Función de easing: comienza rápido y desacelera hacia el final (easeOutCubic)
+                const easedProgress = 1 - Math.pow(1 - progress, 3); 
+
+                currentRotation = startRotation + easedProgress * rotationAmount;
+                
+                wheelCanvas.style.transform = `rotate(${currentRotation}rad)`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    spinning = false;
+                    // Asegurar que la rotación final se "bloquee" en el ángulo exacto para evitar pequeñas desviaciones
+                    wheelCanvas.style.transform = `rotate(${startRotation + rotationAmount}rad)`;
+                    currentRotation = startRotation + rotationAmount; // Actualiza la rotación final
+                }
+            }
+            requestAnimationFrame(animateSpin);
+        }
+    </script>
+</body>
+</html>
