@@ -44,10 +44,11 @@
 </div>
 
     <script>
-      let numerosTotalesParaSorteo = []; // Almacenará los números del 1 al maxNumero
-let participantes = []; // Almacena { nombre: "Juan", numeros: [1, 5, 20] }
-let boletosRegistrados = {}; // Nuevo: Asocia cada número asignado a su participante { '1': 'Juan', '5': 'Juan', '20': 'Juan', ... }
+      let numerosTotalesParaSorteo = [];
+let participantes = [];
+let boletosRegistrados = {};
 let maxNumberConfigured = 0;
+let historialSorteos = []; // NUEVA LÍNEA: Para guardar los números sorteados y su resultado
 
 function configurarNumeros() {
     maxNumberConfigured = parseInt(document.getElementById('maxNumero').value);
@@ -139,6 +140,21 @@ function iniciarSorteo() {
 
     // Guardar el número ganador en una variable global para usarla en mostrarNombreGanador()
     window.numeroGanadorSeleccionado = numeroGanador;
+
+    // --- NUEVA LÓGICA PARA EL HISTORIAL ---
+    const numeroGanadorStr = numeroGanador.toString();
+    let resultadoSorteo = {
+        numero: numeroGanador,
+        ganador: null // Inicialmente no hay ganador
+    };
+
+    if (boletosRegistrados.hasOwnProperty(numeroGanadorStr)) {
+        resultadoSorteo.ganador = boletosRegistrados[numeroGanadorStr];
+    }
+
+    historialSorteos.push(resultadoSorteo); // Añadir el resultado al historial
+    actualizarHistorialEnPantalla(); // Llamar a una nueva función para mostrar el historial
+    // --- FIN NUEVA LÓGICA ---
 }
 
 function mostrarNombreGanador() {
@@ -158,5 +174,11 @@ function mostrarNombreGanador() {
     }
 }
     </script>
+
+<section id="historialSorteo" style="margin-top: 40px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+    <h2>Historial de Sorteos</h2>
+    <ul id="historialList" style="list-style-type: none; padding: 0;">
+        </ul>
+</section>
 </body>
 </html>
